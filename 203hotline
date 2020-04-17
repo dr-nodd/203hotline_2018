@@ -1,0 +1,90 @@
+#!/usr/bin/python3
+
+from math import (factorial, exp)
+import sys
+import argparse
+import time
+
+
+def check_pos(a):
+    value = int(a)
+    if value < 0:
+        raise argparse.ArgumentTypeError("%r must be positive"%(value,))
+    return value
+
+
+def check_size(k):
+    value = int(k)
+    if value < 0 or value > int(sys.argv[1]):
+        raise argparse.ArgumentTypeError("%r must be positive and inferior than n" % (value,))
+    return value
+
+
+if len(sys.argv) == 3:
+    parser = argparse.ArgumentParser(description='203hotline')
+    parser.add_argument('n', type=check_pos)
+    parser.add_argument('k', type=check_size)
+elif len(sys.argv) == 2:
+    parser = argparse.ArgumentParser(description='203hotline')
+    parser.add_argument('d', type=check_pos)
+
+
+try:
+    args = parser.parse_args()
+except:
+    exit(84)
+
+tab = []
+
+def factor_proba(n, k):
+    return factorial(n) // (factorial(k) * factorial(n - k))
+
+
+def binomial():
+    k = 0
+    while k <= 50:
+        tab.append(factor_proba(3500, k) * (args.d/(8 * 3600))**k * ((1-(args.d/(8 * 3600)))**(3500-k)))
+        if k == 0 or (k+1) % 6 != 0 and k != 50:
+            print("{:d} -> {:.3f}\t".format(k, tab[k]), end="")
+        else:
+            print("{:d} -> {:.3f}".format(k, tab[k]))
+        k += 1
+
+
+def overload():
+    res = 1 - sum(tab[:26])
+    return res * 100
+
+
+def poisson():
+    k = 0
+    tab.clear()
+    lam = 3500 * args.d / 28800.0
+    while k <= 50:
+        tab.append(((lam ** k) / factorial(k)) * exp(-lam))
+        if k == 0 or (k + 1) % 6 != 0 and k != 50:
+            print("{:d} -> {:.3f}\t".format(k, tab[k]), end="")
+        else:
+            print("{:d} -> {:.3f}\t".format(k, tab[k]))
+        k += 1
+
+
+if len(sys.argv) == 3:
+    print("{:d}-combination of a {:d} set:".format(args.k, args.n))
+    print("{:d}".format(factor_proba(args.n, args.k)))
+else:
+    print("Binomial distribution:")
+    start = time.time()
+    binomial()
+    print("overload: {:.1f}%".format(overload()))
+    end = time.time()
+    print("computation time: {:.2f} ms\n".format((end - start) * 1000))
+    print("Poisson distribution:")
+    start = time.time()
+    poisson()
+    print("overload: {:.1f}%".format(overload()))
+    end = time.time()
+    print("computation time: {:.2f} ms".format((end - start) * 1000))
+
+
+exit(0)
